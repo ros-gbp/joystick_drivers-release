@@ -1,0 +1,13 @@
+ros-indigo-joystick-drivers (1.10.1-0saucy) saucy; urgency=high
+
+
+
+ -- Jonathan Bohren <jbo@jhu.edu>  Sun, 24 May 2015 07:00:00 -0000
+
+ros-indigo-joystick-drivers (1.10.0-0saucy) saucy; urgency=high
+
+  * First indigo release
+
+ -- Jonathan Bohren <jbo@jhu.edu>  Thu, 26 Jun 2014 07:00:00 -0000
+
+
