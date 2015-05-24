@@ -1,6 +1,6 @@
 <package>
   <name>joy</name>
-  <version>1.10.0</version>
+  <version>1.10.1</version>
   <license>BSD</license>
 
   <description>
@@ -37,6 +37,5 @@
 
   <export>
     <rosbag migration_rule_file="migration_rules/Joy.bmr"/>
-    <architecture_independent/>
   </export>
 </package>
