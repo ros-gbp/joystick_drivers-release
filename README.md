@@ -1,3 +1,31 @@
+## joystick_drivers (kinetic) - 1.10.1-0
+
+The packages in the `joystick_drivers` repository were released into the `kinetic` distro by running `/usr/bin/bloom-release -t kinetic -r kinetic --new-track joystick_drivers` on `Wed, 04 May 2016 22:31:48 -0000`
+
+These packages were released:
+- `joy`
+- `joystick_drivers`
+- `ps3joy`
+- `spacenav_node`
+- `wiimote`
+
+Version of package(s) in repository `joystick_drivers`:
+
+- upstream repository: https://github.com/ros-drivers/joystick_drivers.git
+- release repository: unknown
+- rosdistro version: `null`
+- old version: `null`
+- new version: `1.10.1-0`
+
+Versions of tools used:
+
+- bloom version: `0.5.21`
+- catkin_pkg version: `0.2.10`
+- rosdep version: `0.11.4`
+- rosdistro version: `0.4.7`
+- vcstools version: `0.1.38`
+
+
 ## joystick_drivers (jade) - 1.10.1-0
 
 The packages in the `joystick_drivers` repository were released into the `jade` distro by running `/usr/bin/bloom-release -r jade -t jade joystick_drivers` on `Sun, 24 May 2015 20:26:28 -0000`
