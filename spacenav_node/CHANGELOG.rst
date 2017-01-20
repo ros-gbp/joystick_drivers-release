@@ -2,6 +2,9 @@
 Changelog for package spacenav_node
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.11.0 (2017-01-19)
+-------------------
+
 1.10.1 (2015-05-24)
 -------------------
 * Add full_scale parameter and apply to offset
