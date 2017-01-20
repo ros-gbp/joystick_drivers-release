@@ -1,0 +1,19 @@
+ros-indigo-joystick-drivers (1.11.0-0trusty) trusty; urgency=high
+
+
+
+ -- Jonathan Bohren <jbo@jhu.edu>  Thu, 19 Jan 2017 08:00:00 -0000
+
+ros-indigo-joystick-drivers (1.10.1-0trusty) trusty; urgency=high
+
+
+
+ -- Jonathan Bohren <jbo@jhu.edu>  Sun, 24 May 2015 07:00:00 -0000
+
+ros-indigo-joystick-drivers (1.10.0-0trusty) trusty; urgency=high
+
+  * First indigo release
+
+ -- Jonathan Bohren <jbo@jhu.edu>  Thu, 26 Jun 2014 07:00:00 -0000
+
+
