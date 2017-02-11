@@ -4,9 +4,8 @@ project(joy)
 
 # Load catkin and all dependencies required for this package
 set(CATKIN_DEPS roscpp diagnostic_updater sensor_msgs)
-set(ROSDEP_DEPS joystick)
 find_package(catkin REQUIRED ${CATKIN_DEPS})
-catkin_package(DEPENDS ${CATKIN_DEPS} ${ROSDEP_DEPS})
+catkin_package(DEPENDS ${CATKIN_DEPS})
 
 # Look for <linux/joystick.h>
 include(CheckIncludeFiles)
@@ -23,10 +22,12 @@ endif(HAVE_LINUX_JOYSTICK_H)
 #catkin_add_nosetests(test/test_joy_msg_migration.py)
 
 # Install targets
+if(HAVE_LINUX_JOYSTICK_H)
 install(TARGETS joy_node
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+endif(HAVE_LINUX_JOYSTICK_H)
 
 install(DIRECTORY migration_rules
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
