@@ -2,6 +2,11 @@
 Changelog for package ps3joy
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.11.0 (2017-02-10)
+-------------------
+* Update dependencies to remove warnings
+* Contributors: Mark D Horn
+
 1.10.1 (2015-05-24)
 -------------------
 * Remove stray architechture_independent flags
