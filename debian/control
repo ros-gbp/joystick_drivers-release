@@ -1,0 +1,13 @@
+Source: ros-jade-joy
+Section: misc
+Priority: extra
+Maintainer: Jonathan Bohren <jbo@jhu.edu>
+Build-Depends: debhelper (>= 9.0.0), joystick, ros-jade-catkin, ros-jade-diagnostic-updater, ros-jade-rosbag, ros-jade-roscpp, ros-jade-sensor-msgs
+Homepage: http://www.ros.org/wiki/joy
+Standards-Version: 3.9.2
+
+Package: ros-jade-joy
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, joystick, ros-jade-diagnostic-updater, ros-jade-roscpp, ros-jade-sensor-msgs
+Description: ROS driver for a generic Linux joystick.
+ The joy package contains joy_node, a node that interfaces a generic Linux joystick to ROS. This node publishes a &quot;Joy&quot; message, which contains the current state of each one of the joystick's buttons and axes.
