@@ -1,0 +1,12 @@
+Source: ros-indigo-spacenav-node
+Section: misc
+Priority: extra
+Maintainer: Jonathan Bohren <jbo@jhu.edu>
+Build-Depends: debhelper (>= 9.0.0), libspnav-dev, libx11-dev, ros-indigo-catkin, ros-indigo-geometry-msgs, ros-indigo-roscpp, ros-indigo-sensor-msgs
+Homepage: http://www.ros.org/wiki/spacenav_node
+Standards-Version: 3.9.2
+
+Package: ros-indigo-spacenav-node
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, libspnav-dev, libx11-dev, ros-indigo-geometry-msgs, ros-indigo-roscpp, ros-indigo-sensor-msgs, spacenavd
+Description: ROS interface to the 3Dconnexion SpaceNavigator 6DOF joystick.
