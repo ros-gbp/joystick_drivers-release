@@ -1,0 +1,12 @@
+Source: ros-jade-joystick-drivers
+Section: misc
+Priority: extra
+Maintainer: Jonathan Bohren <jbo@jhu.edu>
+Build-Depends: debhelper (>= 9.0.0), ros-jade-catkin
+Homepage: http://www.ros.org/wiki/joystick_drivers
+Standards-Version: 3.9.2
+
+Package: ros-jade-joystick-drivers
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, ros-jade-joy, ros-jade-ps3joy, ros-jade-spacenav-node, ros-jade-wiimote
+Description: This metapackage depends on packages for interfacing common joysticks and human input devices with ROS.
