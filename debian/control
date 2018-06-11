@@ -1,0 +1,13 @@
+Source: ros-melodic-ps3joy
+Section: misc
+Priority: extra
+Maintainer: Jonathan Bohren <jbo@jhu.edu>
+Build-Depends: debhelper (>= 9.0.0), bluez, joystick, libusb-dev, python-bluez, ros-melodic-catkin, ros-melodic-diagnostic-msgs, ros-melodic-rosgraph, ros-melodic-rospy, ros-melodic-sensor-msgs
+Homepage: http://www.ros.org/wiki/ps3joy
+Standards-Version: 3.9.2
+
+Package: ros-melodic-ps3joy
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, bluez, joystick, libusb-dev, python-bluez, ros-melodic-diagnostic-msgs, ros-melodic-rosgraph, ros-melodic-rospy, ros-melodic-sensor-msgs
+Description: Playstation 3 SIXAXIS or DUAL SHOCK 3 joystick driver.
+ Driver for the Sony PlayStation 3 SIXAXIS or DUAL SHOCK 3 joysticks. In its current state, this driver is not compatible with the use of other Bluetooth HID devices. The driver listens for a connection on the HID ports, starts the joystick streaming data, and passes the data to the Linux uinput device so that it shows up as a normal joystick.
