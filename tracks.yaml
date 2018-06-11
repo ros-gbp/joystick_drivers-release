@@ -122,7 +122,7 @@ tracks:
       -i :{release_inc} --os-name debian --os-not-required
     - git-bloom-generate -y rosrpm --prefix release/:{ros_distro} :{ros_distro} -i
       :{release_inc}
-    devel_branch: indigo-devel
+    devel_branch: master
     last_version: 1.11.0
     name: upstream
     patches: null
@@ -132,4 +132,4 @@ tracks:
     ros_distro: lunar
     vcs_type: git
     vcs_uri: https://github.com/ros-drivers/joystick_drivers.git
-    version: :{auto}
+    version: 1.12.0
