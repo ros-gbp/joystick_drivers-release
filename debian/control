@@ -1,0 +1,12 @@
+Source: ros-kinetic-joystick-drivers
+Section: misc
+Priority: extra
+Maintainer: Jonathan Bohren <jbo@jhu.edu>
+Build-Depends: debhelper (>= 9.0.0), ros-kinetic-catkin
+Homepage: http://www.ros.org/wiki/joystick_drivers
+Standards-Version: 3.9.2
+
+Package: ros-kinetic-joystick-drivers
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, ros-kinetic-joy, ros-kinetic-ps3joy, ros-kinetic-spacenav-node, ros-kinetic-wiimote
+Description: This metapackage depends on packages for interfacing common joysticks and human input devices with ROS.
