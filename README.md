@@ -1,3 +1,31 @@
+## joystick_drivers (indigo) - 1.12.0-0
+
+The packages in the `joystick_drivers` repository were released into the `indigo` distro by running `/usr/bin/bloom-release --ros-distro indigo --track indigo joystick_drivers --edit` on `Mon, 11 Jun 2018 22:45:45 -0000`
+
+These packages were released:
+- `joy`
+- `joystick_drivers`
+- `ps3joy`
+- `spacenav_node`
+- `wiimote`
+
+Version of package(s) in repository `joystick_drivers`:
+
+- upstream repository: https://github.com/ros-drivers/joystick_drivers.git
+- release repository: https://github.com/ros-gbp/joystick_drivers-release.git
+- rosdistro version: `1.11.0-1`
+- old version: `1.11.0-1`
+- new version: `1.12.0-0`
+
+Versions of tools used:
+
+- bloom version: `0.6.4`
+- catkin_pkg version: `0.4.3`
+- rosdep version: `0.12.2`
+- rosdistro version: `0.6.8`
+- vcstools version: `0.1.40`
+
+
 ## joystick_drivers (lunar) - 1.11.0-0
 
 The packages in the `joystick_drivers` repository were released into the `lunar` distro by running `/usr/bin/bloom-release joystick_drivers -r lunar -t lunar -n` on `Wed, 23 Aug 2017 18:45:43 -0000`
