@@ -39,6 +39,9 @@
 #include <diagnostic_updater/diagnostic_updater.h>
 #include "ros/ros.h"
 #include <sensor_msgs/Joy.h>
+#include <sensor_msgs/JoyFeedbackArray.h>
+#include <linux/input.h>
+#include <unistd.h>
 
 
 ///\brief Opens, reads from and publishes joystick events
@@ -51,6 +54,7 @@ private:
   bool default_trig_val_;
   std::string joy_dev_;
   std::string joy_dev_name_;
+  std::string joy_def_ff_;
   double deadzone_;
   double autorepeat_rate_;   // in Hz.  0 for no repeat.
   double coalesce_interval_; // Defaults to 100 Hz rate limit.
@@ -58,6 +62,10 @@ private:
   int pub_count_;
   ros::Publisher pub_;
   double lastDiagTime_;
+
+  int ff_fd_;
+  struct ff_effect joy_effect_;
+  bool update_feedback_;
 
   diagnostic_updater::Updater diagnostic_;
 
@@ -139,9 +147,36 @@ private:
   }
 
 public:
-  Joystick() : nh_(), diagnostic_()
+  Joystick() : nh_(), diagnostic_(), ff_fd_(-1)
   {}
 
+  void set_feedback(const sensor_msgs::JoyFeedbackArray::ConstPtr& msg)
+  {
+    if (ff_fd_ == -1)
+      return;//we arent ready yet
+    
+    int size = msg->array.size();
+    for (int i = 0; i < size; i++)
+    {
+      //process each feedback
+      if (msg->array[i].type == 1 && ff_fd_ != -1)//TYPE_RUMBLE
+      {
+        //if id is zero, thats low freq, 1 is high
+        joy_effect_.direction = 0;//down
+        joy_effect_.type = FF_RUMBLE;
+        if (msg->array[i].id == 0)
+          joy_effect_.u.rumble.strong_magnitude = ((float)(1<<15))*msg->array[i].intensity;
+        else  
+          joy_effect_.u.rumble.weak_magnitude = ((float)(1<<15))*msg->array[i].intensity;
+
+        joy_effect_.replay.length = 1000;
+        joy_effect_.replay.delay = 0;
+		
+        update_feedback_ = true;
+      }
+    }
+  }
+  
   ///\brief Opens joystick port, reads from port and publishes while node is active
   int main(int argc, char **argv)
   {
@@ -151,7 +186,9 @@ public:
     // Parameters
     ros::NodeHandle nh_param("~");
     pub_ = nh_.advertise<sensor_msgs::Joy>("joy", 1);
+    ros::Subscriber sub = nh_.subscribe("joy/set_feedback", 10, &Joystick::set_feedback, this);
     nh_param.param<std::string>("dev", joy_dev_, "/dev/input/js0");
+    nh_param.param<std::string>("dev_ff", joy_def_ff_, "/dev/input/by-id/usb-Sony_PLAYSTATION_R_3_Controller-event-joystick");
     nh_param.param<std::string>("dev_name", joy_dev_name_, "");
     nh_param.param<double>("deadzone", deadzone_, 0.05);
     nh_param.param<double>("autorepeat_rate", autorepeat_rate_, 0);
@@ -164,7 +201,9 @@ public:
     {
         std::string joy_dev_path = get_dev_by_joy_name(joy_dev_name_);
         if (joy_dev_path.empty())
+        {
             ROS_ERROR("Couldn't find a joystick with name %s. Falling back to default device.", joy_dev_name_.c_str());
+        }
         else
         {
             ROS_INFO("Using %s as joystick device.", joy_dev_path.c_str());
@@ -173,7 +212,9 @@ public:
     }
 
     if (autorepeat_rate_ > 1 / coalesce_interval_)
+    {
       ROS_WARN("joy_node: autorepeat_rate (%f Hz) > 1/coalesce_interval (%f Hz) does not make sense. Timing behavior is not well defined.", autorepeat_rate_, 1/coalesce_interval_);
+    }
 
     if (deadzone_ >= 1)
     {
@@ -252,6 +293,33 @@ public:
         diagnostic_.update();
       }
 
+      if (joy_def_ff_.length())
+      {
+        ff_fd_ = open(joy_def_ff_.c_str(), O_RDWR);
+	
+        /* Set the gain of the device*/
+        int gain = 100;           /* between 0 and 100 */
+        struct input_event ie;      /* structure used to communicate with the driver */
+
+        ie.type = EV_FF;
+        ie.code = FF_GAIN;
+        ie.value = 0xFFFFUL * gain / 100;
+
+        if (write(ff_fd_, &ie, sizeof(ie)) == -1)
+          ROS_ERROR("Couldn't open joystick force feedback!");//perror("set gain");
+
+        joy_effect_.id = -1;//0;
+        joy_effect_.direction = 0;//down
+        joy_effect_.type = FF_RUMBLE;
+        joy_effect_.u.rumble.strong_magnitude = 0;
+        joy_effect_.u.rumble.weak_magnitude = 0;
+        joy_effect_.replay.length = 1000;
+        joy_effect_.replay.delay = 0;
+		
+        //upload the effect
+        int ret = ioctl(ff_fd_, EVIOCSFF, &joy_effect_);
+      }
+
       ROS_INFO("Opened joystick: %s. deadzone_: %f.", joy_dev_.c_str(), deadzone_);
       open_ = true;
       diagnostic_.force_update();
@@ -285,6 +353,24 @@ public:
           //break; // Joystick is probably closed. Not sure if this case is useful.
         }
 
+        //play the rumble effect (can probably do this at lower rate later)
+        if (ff_fd_ != -1)
+        {
+          struct input_event start;
+          start.type = EV_FF;
+          start.code = joy_effect_.id;
+		      start.value = 3;
+          if (write(ff_fd_, (const void*) &start, sizeof(start)) == -1)
+            break;//fd closed
+
+          //upload the effect
+          if (update_feedback_ == true)
+          {
+            int ret = ioctl(ff_fd_, EVIOCSFF, &joy_effect_);
+            update_feedback_ = false;
+          }
+        }
+        
         if (FD_ISSET(joy_fd, &set))
         {
           if (read(joy_fd, &event, sizeof(js_event)) == -1 && errno != EAGAIN)
@@ -400,6 +486,7 @@ public:
             }
             pub_.publish(sticky_buttons_joy_msg);
           } else {
+            joy_msg.header.stamp = ros::Time().now();
             pub_.publish(joy_msg);
           }
 
@@ -438,11 +525,14 @@ public:
 
         diagnostic_.update();
       } // End of joystick open loop.
-
+      
+      close(ff_fd_);
       close(joy_fd);
       ros::spinOnce();
       if (nh_.ok())
+      {
         ROS_ERROR("Connection to joystick device lost unexpectedly. Will reopen.");
+      }
     }
 
   cleanup:
