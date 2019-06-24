@@ -156,4 +156,4 @@ tracks:
     ros_distro: melodic
     vcs_type: git
     vcs_uri: https://github.com/ros-drivers/joystick_drivers.git
-    version: 1.12.0
+    version: :{auto}
