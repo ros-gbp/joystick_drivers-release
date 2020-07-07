@@ -4,8 +4,6 @@ Changelog for package wiimote
 
 1.14.0 (2020-07-07)
 -------------------
-* Fixing linter errors for Noetic. (`#174 <https://github.com/ros-drivers/joystick_drivers/issues/174>`_)
-* Update master to target Noetic (`#173 <https://github.com/ros-drivers/joystick_drivers/issues/173>`_)
 * roslint and Generic Clean-Up (`#161 <https://github.com/ros-drivers/joystick_drivers/issues/161>`_)
 * Contributors: Joshua Whitley
 
