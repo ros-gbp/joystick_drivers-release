@@ -1,0 +1,12 @@
+Source: ros-melodic-spacenav-node
+Section: misc
+Priority: optional
+Maintainer: Jonathan Bohren <jbo@jhu.edu>
+Build-Depends: debhelper (>= 9.0.0), libspnav-dev, libx11-dev, ros-melodic-catkin, ros-melodic-geometry-msgs, ros-melodic-roscpp, ros-melodic-roslint, ros-melodic-sensor-msgs
+Homepage: http://www.ros.org/wiki/spacenav_node
+Standards-Version: 3.9.2
+
+Package: ros-melodic-spacenav-node
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, libspnav-dev, libx11-dev, ros-melodic-geometry-msgs, ros-melodic-roscpp, ros-melodic-sensor-msgs, spacenavd
+Description: ROS interface to the 3Dconnexion SpaceNavigator 6DOF joystick.
