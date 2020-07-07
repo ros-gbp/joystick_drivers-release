@@ -1,5 +1,5 @@
 /*
- * teleop_pr2
+ * joy_node
  * Copyright (c) 2009, Willow Garage, Inc.
  * All rights reserved.
  *
@@ -28,23 +28,25 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-//\author: Blaise Gassend
+// \author: Blaise Gassend
 
-#include <unistd.h>
-#include <math.h>
-#include <linux/joystick.h>
-#include <fcntl.h>
-#include <sys/stat.h>
+#include <string>
+
 #include <dirent.h>
+#include <fcntl.h>
+#include <linux/input.h>
+#include <linux/joystick.h>
+#include <math.h>
+#include <sys/stat.h>
+#include <unistd.h>
+
 #include <diagnostic_updater/diagnostic_updater.h>
-#include "ros/ros.h"
+#include <ros/ros.h>
 #include <sensor_msgs/Joy.h>
 #include <sensor_msgs/JoyFeedbackArray.h>
-#include <linux/input.h>
-#include <unistd.h>
 
 
-///\brief Opens, reads from and publishes joystick events
+/// \brief Opens, reads from and publishes joystick events
 class Joystick
 {
 private:
@@ -54,10 +56,10 @@ private:
   bool default_trig_val_;
   std::string joy_dev_;
   std::string joy_dev_name_;
-  std::string joy_def_ff_;
+  std::string joy_dev_ff_;
   double deadzone_;
-  double autorepeat_rate_;   // in Hz.  0 for no repeat.
-  double coalesce_interval_; // Defaults to 100 Hz rate limit.
+  double autorepeat_rate_;    // in Hz.  0 for no repeat.
+  double coalesce_interval_;  // Defaults to 100 Hz rate limit.
   int event_count_;
   int pub_count_;
   ros::Publisher pub_;
@@ -69,15 +71,19 @@ private:
 
   diagnostic_updater::Updater diagnostic_;
 
-  ///\brief Publishes diagnostics and status
+  /// \brief Publishes diagnostics and status
   void diagnostics(diagnostic_updater::DiagnosticStatusWrapper& stat)
   {
     double now = ros::Time::now().toSec();
     double interval = now - lastDiagTime_;
     if (open_)
+    {
       stat.summary(0, "OK");
+    }
     else
+    {
       stat.summary(2, "Joystick not open.");
+    }
 
     stat.add("topic", pub_.getTopic());
     stat.add("device", joy_dev_);
@@ -100,36 +106,46 @@ private:
    */
   std::string get_dev_by_joy_name(const std::string& joy_name)
   {
-    const char path[] = "/dev/input"; // no trailing / here
+    const char path[] = "/dev/input";  // no trailing / here
     struct dirent *entry;
     struct stat stat_buf;
 
     DIR *dev_dir = opendir(path);
-    if (dev_dir == NULL)
+    if (dev_dir == nullptr)
     {
       ROS_ERROR("Couldn't open %s. Error %i: %s.", path, errno, strerror(errno));
       return "";
     }
 
-    while ((entry = readdir(dev_dir)) != NULL)
+    while ((entry = readdir(dev_dir)) != nullptr)
     {
       // filter entries
-      if (strncmp(entry->d_name, "js", 2) != 0) // skip device if it's not a joystick
+      if (strncmp(entry->d_name, "js", 2) != 0)  // skip device if it's not a joystick
+      {
         continue;
+      }
       std::string current_path = std::string(path) + "/" + entry->d_name;
       if (stat(current_path.c_str(), &stat_buf) == -1)
+      {
         continue;
-      if (!S_ISCHR(stat_buf.st_mode)) // input devices are character devices, skip other
+      }
+      if (!S_ISCHR(stat_buf.st_mode))  // input devices are character devices, skip other
+      {
         continue;
+      }
 
       // get joystick name
       int joy_fd = open(current_path.c_str(), O_RDONLY);
       if (joy_fd == -1)
+      {
         continue;
+      }
 
       char current_joy_name[128];
       if (ioctl(joy_fd, JSIOCGNAME(sizeof(current_joy_name)), current_joy_name) < 0)
+      {
         strncpy(current_joy_name, "Unknown", sizeof(current_joy_name));
+      }
 
       close(joy_fd);
 
@@ -137,8 +153,8 @@ private:
 
       if (strcmp(current_joy_name, joy_name.c_str()) == 0)
       {
-          closedir(dev_dir);
-          return current_path;
+        closedir(dev_dir);
+        return current_path;
       }
     }
 
@@ -153,31 +169,37 @@ public:
   void set_feedback(const sensor_msgs::JoyFeedbackArray::ConstPtr& msg)
   {
     if (ff_fd_ == -1)
-      return;//we arent ready yet
-    
-    int size = msg->array.size();
-    for (int i = 0; i < size; i++)
     {
-      //process each feedback
-      if (msg->array[i].type == 1 && ff_fd_ != -1)//TYPE_RUMBLE
+      return;  // we arent ready yet
+    }
+
+    size_t size = msg->array.size();
+    for (size_t i = 0; i < size; i++)
+    {
+      // process each feedback
+      if (msg->array[i].type == 1 && ff_fd_ != -1)  // TYPE_RUMBLE
       {
-        //if id is zero, thats low freq, 1 is high
-        joy_effect_.direction = 0;//down
+        // if id is zero, thats low freq, 1 is high
+        joy_effect_.direction = 0;  // down
         joy_effect_.type = FF_RUMBLE;
         if (msg->array[i].id == 0)
-          joy_effect_.u.rumble.strong_magnitude = ((float)(1<<15))*msg->array[i].intensity;
-        else  
-          joy_effect_.u.rumble.weak_magnitude = ((float)(1<<15))*msg->array[i].intensity;
+        {
+          joy_effect_.u.rumble.strong_magnitude = (static_cast<float>(1<<15))*msg->array[i].intensity;
+        }
+        else
+        {
+          joy_effect_.u.rumble.weak_magnitude = (static_cast<float>(1<<15))*msg->array[i].intensity;
+        }
 
         joy_effect_.replay.length = 1000;
         joy_effect_.replay.delay = 0;
-		
+
         update_feedback_ = true;
       }
     }
   }
-  
-  ///\brief Opens joystick port, reads from port and publishes while node is active
+
+  /// \brief Opens joystick port, reads from port and publishes while node is active
   int main(int argc, char **argv)
   {
     diagnostic_.add("Joystick Driver Status", this, &Joystick::diagnostics);
@@ -188,12 +210,12 @@ public:
     pub_ = nh_.advertise<sensor_msgs::Joy>("joy", 1);
     ros::Subscriber sub = nh_.subscribe("joy/set_feedback", 10, &Joystick::set_feedback, this);
     nh_param.param<std::string>("dev", joy_dev_, "/dev/input/js0");
-    nh_param.param<std::string>("dev_ff", joy_def_ff_, "/dev/input/by-id/usb-Sony_PLAYSTATION_R_3_Controller-event-joystick");
+    nh_param.param<std::string>("dev_ff", joy_dev_ff_, "/dev/input/event0");
     nh_param.param<std::string>("dev_name", joy_dev_name_, "");
     nh_param.param<double>("deadzone", deadzone_, 0.05);
     nh_param.param<double>("autorepeat_rate", autorepeat_rate_, 0);
     nh_param.param<double>("coalesce_interval", coalesce_interval_, 0.001);
-    nh_param.param<bool>("default_trig_val",default_trig_val_,false);
+    nh_param.param<bool>("default_trig_val", default_trig_val_, false);
     nh_param.param<bool>("sticky_buttons", sticky_buttons_, false);
 
     // Checks on parameters
@@ -202,23 +224,26 @@ public:
         std::string joy_dev_path = get_dev_by_joy_name(joy_dev_name_);
         if (joy_dev_path.empty())
         {
-            ROS_ERROR("Couldn't find a joystick with name %s. Falling back to default device.", joy_dev_name_.c_str());
+          ROS_ERROR("Couldn't find a joystick with name %s. Falling back to default device.", joy_dev_name_.c_str());
         }
         else
         {
-            ROS_INFO("Using %s as joystick device.", joy_dev_path.c_str());
-            joy_dev_ = joy_dev_path;
+          ROS_INFO("Using %s as joystick device.", joy_dev_path.c_str());
+          joy_dev_ = joy_dev_path;
         }
     }
 
     if (autorepeat_rate_ > 1 / coalesce_interval_)
     {
-      ROS_WARN("joy_node: autorepeat_rate (%f Hz) > 1/coalesce_interval (%f Hz) does not make sense. Timing behavior is not well defined.", autorepeat_rate_, 1/coalesce_interval_);
+      ROS_WARN("joy_node: autorepeat_rate (%f Hz) > 1/coalesce_interval (%f Hz) "
+        "does not make sense. Timing behavior is not well defined.", autorepeat_rate_, 1/coalesce_interval_);
     }
 
     if (deadzone_ >= 1)
     {
-      ROS_WARN("joy_node: deadzone greater than 1 was requested. The semantics of deadzone have changed. It is now related to the range [-1:1] instead of [-32767:32767]. For now I am dividing your deadzone by 32767, but this behavior is deprecated so you need to update your launch file.");
+      ROS_WARN("joy_node: deadzone greater than 1 was requested. The semantics of deadzone have changed. "
+        "It is now related to the range [-1:1] instead of [-32767:32767]. For now I am dividing your deadzone "
+        "by 32767, but this behavior is deprecated so you need to update your launch file.");
       deadzone_ /= 32767;
     }
 
@@ -269,7 +294,9 @@ public:
       {
         ros::spinOnce();
         if (!nh_.ok())
+        {
           goto cleanup;
+        }
         joy_fd = open(joy_dev_.c_str(), O_RDONLY);
         if (joy_fd != -1)
         {
@@ -283,7 +310,9 @@ public:
           joy_fd = open(joy_dev_.c_str(), O_RDONLY);
         }
         if (joy_fd != -1)
+        {
           break;
+        }
         if (first_fault)
         {
           ROS_ERROR("Couldn't open joystick %s. Will retry every second.", joy_dev_.c_str());
@@ -293,10 +322,10 @@ public:
         diagnostic_.update();
       }
 
-      if (joy_def_ff_.length())
+      if (!joy_dev_ff_.empty())
       {
-        ff_fd_ = open(joy_def_ff_.c_str(), O_RDWR);
-	
+        ff_fd_ = open(joy_dev_ff_.c_str(), O_RDWR);
+
         /* Set the gain of the device*/
         int gain = 100;           /* between 0 and 100 */
         struct input_event ie;      /* structure used to communicate with the driver */
@@ -306,17 +335,19 @@ public:
         ie.value = 0xFFFFUL * gain / 100;
 
         if (write(ff_fd_, &ie, sizeof(ie)) == -1)
-          ROS_ERROR("Couldn't open joystick force feedback!");//perror("set gain");
+        {
+          ROS_WARN("Couldn't set gain on joystick force feedback: %s", strerror(errno));
+        }
 
-        joy_effect_.id = -1;//0;
-        joy_effect_.direction = 0;//down
+        joy_effect_.id = -1;
+        joy_effect_.direction = 0;  // down
         joy_effect_.type = FF_RUMBLE;
         joy_effect_.u.rumble.strong_magnitude = 0;
         joy_effect_.u.rumble.weak_magnitude = 0;
         joy_effect_.replay.length = 1000;
         joy_effect_.replay.delay = 0;
-		
-        //upload the effect
+
+        // upload the effect
         int ret = ioctl(ff_fd_, EVIOCSFF, &joy_effect_);
       }
 
@@ -328,10 +359,8 @@ public:
       bool publication_pending = false;
       tv.tv_sec = 1;
       tv.tv_usec = 0;
-      sensor_msgs::Joy joy_msg; // Here because we want to reset it on device close.
-      double val; //Temporary variable to hold event values
-      sensor_msgs::Joy last_published_joy_msg; // used for sticky buttons option
-      sensor_msgs::Joy sticky_buttons_joy_msg; // used for sticky buttons option
+      sensor_msgs::Joy joy_msg;  // Here because we want to reset it on device close.
+      double val;  // Temporary variable to hold event values
       while (nh_.ok())
       {
         ros::spinOnce();
@@ -341,91 +370,105 @@ public:
         FD_ZERO(&set);
         FD_SET(joy_fd, &set);
 
-        //ROS_INFO("Select...");
-        int select_out = select(joy_fd+1, &set, NULL, NULL, &tv);
-        //ROS_INFO("Tick...");
+        int select_out = select(joy_fd+1, &set, nullptr, nullptr, &tv);
         if (select_out == -1)
         {
           tv.tv_sec = 0;
           tv.tv_usec = 0;
-          //ROS_INFO("Select returned negative. %i", ros::isShuttingDown());
           continue;
-          //break; // Joystick is probably closed. Not sure if this case is useful.
         }
 
-        //play the rumble effect (can probably do this at lower rate later)
+        // play the rumble effect (can probably do this at lower rate later)
         if (ff_fd_ != -1)
         {
           struct input_event start;
           start.type = EV_FF;
           start.code = joy_effect_.id;
-		      start.value = 3;
+          start.value = 3;
           if (write(ff_fd_, (const void*) &start, sizeof(start)) == -1)
-            break;//fd closed
+          {
+            break;  // fd closed
+          }
 
-          //upload the effect
+          // upload the effect
           if (update_feedback_ == true)
           {
             int ret = ioctl(ff_fd_, EVIOCSFF, &joy_effect_);
             update_feedback_ = false;
           }
         }
-        
+
         if (FD_ISSET(joy_fd, &set))
         {
           if (read(joy_fd, &event, sizeof(js_event)) == -1 && errno != EAGAIN)
-            break; // Joystick is probably closed. Definitely occurs.
+          {
+            break;  // Joystick is probably closed. Definitely occurs.
+          }
 
-          //ROS_INFO("Read data...");
           joy_msg.header.stamp = ros::Time().now();
           event_count_++;
-          switch(event.type)
+          switch (event.type)
           {
           case JS_EVENT_BUTTON:
           case JS_EVENT_BUTTON | JS_EVENT_INIT:
-            if(event.number >= joy_msg.buttons.size())
+            if (event.number >= joy_msg.buttons.size())
             {
-              int old_size = joy_msg.buttons.size();
+              size_t old_size = joy_msg.buttons.size();
               joy_msg.buttons.resize(event.number+1);
-              last_published_joy_msg.buttons.resize(event.number+1);
-              sticky_buttons_joy_msg.buttons.resize(event.number+1);
-              for(unsigned int i=old_size;i<joy_msg.buttons.size();i++){
+              for (size_t i = old_size; i < joy_msg.buttons.size(); i++)
+              {
                 joy_msg.buttons[i] = 0.0;
-                last_published_joy_msg.buttons[i] = 0.0;
-                sticky_buttons_joy_msg.buttons[i] = 0.0;
               }
             }
-            joy_msg.buttons[event.number] = (event.value ? 1 : 0);
+            if (sticky_buttons_)
+            {
+              if (event.value == 1)
+              {
+                joy_msg.buttons[event.number] = 1 - joy_msg.buttons[event.number];
+              }
+            }
+            else
+            {
+              joy_msg.buttons[event.number] = (event.value ? 1 : 0);
+            }
             // For initial events, wait a bit before sending to try to catch
             // all the initial events.
             if (!(event.type & JS_EVENT_INIT))
+            {
               publish_now = true;
+            }
             else
+            {
               publish_soon = true;
+            }
             break;
           case JS_EVENT_AXIS:
           case JS_EVENT_AXIS | JS_EVENT_INIT:
             val = event.value;
-            if(event.number >= joy_msg.axes.size())
+            if (event.number >= joy_msg.axes.size())
             {
-              int old_size = joy_msg.axes.size();
+              size_t old_size = joy_msg.axes.size();
               joy_msg.axes.resize(event.number+1);
-              last_published_joy_msg.axes.resize(event.number+1);
-              sticky_buttons_joy_msg.axes.resize(event.number+1);
-              for(unsigned int i=old_size;i<joy_msg.axes.size();i++){
+              for (size_t i = old_size; i < joy_msg.axes.size(); i++)
+              {
                 joy_msg.axes[i] = 0.0;
-                last_published_joy_msg.axes[i] = 0.0;
-                sticky_buttons_joy_msg.axes[i] = 0.0;
               }
             }
-            if(default_trig_val_){
+            if (default_trig_val_)
+            {
               // Allows deadzone to be "smooth"
               if (val > unscaled_deadzone)
+              {
                 val -= unscaled_deadzone;
+              }
               else if (val < -unscaled_deadzone)
+              {
                 val += unscaled_deadzone;
+              }
               else
+              {
                 val = 0;
+              }
               joy_msg.axes[event.number] = val * scale;
               // Will wait a bit before sending to try to combine events.
               publish_soon = true;
@@ -436,59 +479,44 @@ public:
               if (!(event.type & JS_EVENT_INIT))
               {
                 val = event.value;
-                if(val > unscaled_deadzone)
+                if (val > unscaled_deadzone)
+                {
                   val -= unscaled_deadzone;
-                else if(val < -unscaled_deadzone)
+                }
+                else if (val < -unscaled_deadzone)
+                {
                   val += unscaled_deadzone;
+                }
                 else
-                  val=0;
-                joy_msg.axes[event.number]= val * scale;
+                {
+                  val = 0;
+                }
+                joy_msg.axes[event.number] = val * scale;
               }
 
               publish_soon = true;
               break;
-              default:
-              ROS_WARN("joy_node: Unknown event type. Please file a ticket. time=%u, value=%d, type=%Xh, number=%d", event.time, event.value, event.type, event.number);
-              break;
             }
+            default:
+              ROS_WARN("joy_node: Unknown event type. Please file a ticket. "
+                "time=%u, value=%d, type=%Xh, number=%d", event.time, event.value, event.type, event.number);
+              break;
           }
         }
-        else if (tv_set) // Assume that the timer has expired.
+        else if (tv_set)  // Assume that the timer has expired.
         {
           joy_msg.header.stamp = ros::Time().now();
           publish_now = true;
         }
 
-        if (publish_now) {
+        if (publish_now)
+        {
           // Assume that all the JS_EVENT_INIT messages have arrived already.
           // This should be the case as the kernel sends them along as soon as
           // the device opens.
-          //ROS_INFO("Publish...");
-          if (sticky_buttons_ == true) {
-            // cycle through buttons
-            for (size_t i = 0; i < joy_msg.buttons.size(); i++) {
-              // change button state only on transition from 0 to 1
-              if (joy_msg.buttons[i] == 1 && last_published_joy_msg.buttons[i] == 0) {
-                sticky_buttons_joy_msg.buttons[i] = sticky_buttons_joy_msg.buttons[i] ? 0 : 1;
-              } else {
-                // do not change the message sate
-                //sticky_buttons_joy_msg.buttons[i] = sticky_buttons_joy_msg.buttons[i] ? 0 : 1;
-              }
-            }
-            // update last published message
-            last_published_joy_msg = joy_msg;
-            // fill rest of sticky_buttons_joy_msg (time stamps, axes, etc)
-            sticky_buttons_joy_msg.header.stamp.nsec = joy_msg.header.stamp.nsec;
-            sticky_buttons_joy_msg.header.stamp.sec  = joy_msg.header.stamp.sec;
-            sticky_buttons_joy_msg.header.frame_id   = joy_msg.header.frame_id;
-            for(size_t i=0; i < joy_msg.axes.size(); i++){
-              sticky_buttons_joy_msg.axes[i] = joy_msg.axes[i];
-            }
-            pub_.publish(sticky_buttons_joy_msg);
-          } else {
-            joy_msg.header.stamp = ros::Time().now();
-            pub_.publish(joy_msg);
-          }
+          joy_msg.header.stamp = ros::Time().now();
+          joy_msg.header.frame_id = joy_dev_.c_str();
+          pub_.publish(joy_msg);
 
           publish_now = false;
           tv_set = false;
@@ -505,7 +533,6 @@ public:
           tv.tv_usec = (coalesce_interval_ - tv.tv_sec) * 1e6;
           publication_pending = true;
           tv_set = true;
-          //ROS_INFO("Pub pending...");
         }
 
         // If nothing is going on, start a timer to do autorepeat.
@@ -514,7 +541,6 @@ public:
           tv.tv_sec = trunc(autorepeat_interval);
           tv.tv_usec = (autorepeat_interval - tv.tv_sec) * 1e6;
           tv_set = true;
-          //ROS_INFO("Autorepeat pending... %li %li", tv.tv_sec, tv.tv_usec);
         }
 
         if (!tv_set)
@@ -524,8 +550,8 @@ public:
         }
 
         diagnostic_.update();
-      } // End of joystick open loop.
-      
+      }  // End of joystick open loop.
+
       close(ff_fd_);
       close(joy_fd);
       ros::spinOnce();
