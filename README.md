@@ -1,3 +1,31 @@
+## joystick_drivers (melodic) - 1.14.0-1
+
+The packages in the `joystick_drivers` repository were released into the `melodic` distro by running `/usr/bin/bloom-release --track melodic --ros-distro melodic joystick_drivers --edit` on `Tue, 07 Jul 2020 06:47:29 -0000`
+
+These packages were released:
+- `joy`
+- `joystick_drivers`
+- `ps3joy`
+- `spacenav_node`
+- `wiimote`
+
+Version of package(s) in repository `joystick_drivers`:
+
+- upstream repository: https://github.com/ros-drivers/joystick_drivers.git
+- release repository: https://github.com/ros-gbp/joystick_drivers-release.git
+- rosdistro version: `1.13.0-1`
+- old version: `1.13.0-1`
+- new version: `1.14.0-1`
+
+Versions of tools used:
+
+- bloom version: `0.9.3`
+- catkin_pkg version: `0.4.17`
+- rosdep version: `0.19.0`
+- rosdistro version: `0.8.1`
+- vcstools version: `0.1.42`
+
+
 ## joystick_drivers (noetic) - 1.14.0-1
 
 The packages in the `joystick_drivers` repository were released into the `noetic` distro by running `/usr/bin/bloom-release --track noetic --ros-distro noetic joystick_drivers` on `Tue, 07 Jul 2020 06:36:41 -0000`
