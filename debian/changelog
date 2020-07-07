@@ -1,0 +1,40 @@
+ros-melodic-joystick-drivers (1.14.0-1bionic) bionic; urgency=high
+
+  * roslint and Generic Clean-Up (#161 <https://github.com/ros-drivers/joystick_drivers/issues/161>)
+  * Contributors: Joshua Whitley
+
+ -- Jonathan Bohren <jbo@jhu.edu>  Tue, 07 Jul 2020 05:00:00 -0000
+
+ros-melodic-joystick-drivers (1.13.0-1bionic) bionic; urgency=high
+
+
+
+ -- Jonathan Bohren <jbo@jhu.edu>  Mon, 24 Jun 2019 05:00:00 -0000
+
+ros-melodic-joystick-drivers (1.12.0-1bionic) bionic; urgency=high
+
+  * Addressed numerous outstanding PRs.
+  * Changed package xml to format 2
+  * Contributors: Jonathan Bohren, jprod123
+
+ -- Jonathan Bohren <jbo@jhu.edu>  Mon, 11 Jun 2018 05:00:00 -0000
+
+ros-melodic-joystick-drivers (1.11.0-1bionic) bionic; urgency=high
+
+
+
+ -- Jonathan Bohren <jbo@jhu.edu>  Fri, 10 Feb 2017 06:00:00 -0000
+
+ros-melodic-joystick-drivers (1.10.1-1bionic) bionic; urgency=high
+
+
+
+ -- Jonathan Bohren <jbo@jhu.edu>  Sun, 24 May 2015 05:00:00 -0000
+
+ros-melodic-joystick-drivers (1.10.0-1bionic) bionic; urgency=high
+
+  * First indigo release
+
+ -- Jonathan Bohren <jbo@jhu.edu>  Thu, 26 Jun 2014 05:00:00 -0000
+
+
