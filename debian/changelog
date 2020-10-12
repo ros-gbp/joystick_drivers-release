@@ -1,0 +1,66 @@
+ros-noetic-ps3joy (1.15.0-1buster) buster; urgency=high
+
+
+
+ -- Jonathan Bohren <jbo@jhu.edu>  Mon, 12 Oct 2020 05:00:00 -0000
+
+ros-noetic-ps3joy (1.14.0-1buster) buster; urgency=high
+
+  * Fixing linter errors for Noetic. (#174 <https://github.com/ros-drivers/joystick_drivers/issues/174>)
+  * Make sure to import struct where it is used. (#162 <https://github.com/ros-drivers/joystick_drivers/issues/162>)
+  * roslint and Generic Clean-Up (#161 <https://github.com/ros-drivers/joystick_drivers/issues/161>)
+  * Contributors: Chris Lalancette, Joshua Whitley
+
+ -- Jonathan Bohren <jbo@jhu.edu>  Tue, 07 Jul 2020 05:00:00 -0000
+
+ros-noetic-ps3joy (1.13.0-1buster) buster; urgency=high
+
+  * Merge pull request #128 <https://github.com/ros-drivers/joystick_drivers/issues/128> from ros-drivers/fix/tab_errors
+  * Cleaning up Python indentation.
+  * Merge pull request #123 <https://github.com/ros-drivers/joystick_drivers/issues/123> from cclauss/modernize-python2-code
+  * Modernize Python 2 code to get ready for Python 3
+  * Merge branch 'master' into indigo-devel
+  * Contributors: Joshua Whitley, Matthew, cclauss
+
+ -- Jonathan Bohren <jbo@jhu.edu>  Mon, 24 Jun 2019 05:00:00 -0000
+
+ros-noetic-ps3joy (1.12.0-1buster) buster; urgency=high
+
+  * Addressed numerous outstanding PRs.
+  * Created bluetooth_devices.md
+  * Created testing guide for ps3joy.
+  * Create procedure_test.md
+  * Let ps3joy_node not quit on inactivity-timeout.
+  * Refine diagnostics message usage in ps3joy_node
+  * Improve ps3joy_node with rospy.init_node and .is_shutdown
+  * Remove quit on failed root level check, part one of issue #53 <https://github.com/ros-drivers/joystick_drivers/issues/53>
+  * Create README
+  * Changed package xml to format 2
+  * Contributors: Alenso Labady, Felix Kolbe, Jonathan Bohren, alab288, jprod123
+
+ -- Jonathan Bohren <jbo@jhu.edu>  Mon, 11 Jun 2018 05:00:00 -0000
+
+ros-noetic-ps3joy (1.11.0-1buster) buster; urgency=high
+
+  * Update dependencies to remove warnings
+  * Contributors: Mark D Horn
+
+ -- Jonathan Bohren <jbo@jhu.edu>  Fri, 10 Feb 2017 06:00:00 -0000
+
+ros-noetic-ps3joy (1.10.1-1buster) buster; urgency=high
+
+  * Remove stray architechture_independent flags
+  * Contributors: Jonathan Bohren, Scott K Logan
+
+ -- Jonathan Bohren <jbo@jhu.edu>  Sun, 24 May 2015 05:00:00 -0000
+
+ros-noetic-ps3joy (1.10.0-1buster) buster; urgency=high
+
+  * First indigo reelase
+  * Update ps3joy/package.xml URLs with github user ros to ros-drivers
+  * Prompt for sudo password when required
+  * Contributors: Felix Kolbe, Jonathan Bohren, dawonn
+
+ -- Jonathan Bohren <jbo@jhu.edu>  Thu, 26 Jun 2014 05:00:00 -0000
+
+
