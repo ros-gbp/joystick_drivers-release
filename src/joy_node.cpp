@@ -30,10 +30,12 @@
 
 // \author: Blaise Gassend
 
+#include <memory>
 #include <string>
 
 #include <dirent.h>
 #include <fcntl.h>
+#include <limits.h>
 #include <linux/input.h>
 #include <linux/joystick.h>
 #include <math.h>
@@ -44,6 +46,14 @@
 #include <ros/ros.h>
 #include <sensor_msgs/Joy.h>
 #include <sensor_msgs/JoyFeedbackArray.h>
+
+
+int closedir_cb(DIR *dir)
+{
+  if (dir)
+    return closedir(dir);
+  return 0;
+}
 
 
 /// \brief Opens, reads from and publishes joystick events
@@ -70,6 +80,8 @@ private:
   bool update_feedback_;
 
   diagnostic_updater::Updater diagnostic_;
+
+  typedef std::unique_ptr<DIR, decltype(&closedir)> dir_ptr;
 
   /// \brief Publishes diagnostics and status
   void diagnostics(diagnostic_updater::DiagnosticStatusWrapper& stat)
@@ -110,14 +122,14 @@ private:
     struct dirent *entry;
     struct stat stat_buf;
 
-    DIR *dev_dir = opendir(path);
+    dir_ptr dev_dir(opendir(path), &closedir_cb);
     if (dev_dir == nullptr)
     {
       ROS_ERROR("Couldn't open %s. Error %i: %s.", path, errno, strerror(errno));
       return "";
     }
 
-    while ((entry = readdir(dev_dir)) != nullptr)
+    while ((entry = readdir(dev_dir.get())) != nullptr)
     {
       // filter entries
       if (strncmp(entry->d_name, "js", 2) != 0)  // skip device if it's not a joystick
@@ -153,13 +165,98 @@ private:
 
       if (strcmp(current_joy_name, joy_name.c_str()) == 0)
       {
-        closedir(dev_dir);
         return current_path;
       }
     }
 
-    closedir(dev_dir);
     return "";
+  }
+
+  /*! \brief Autodetection of the force feedback device. If autodetection fails,
+   *         returns empty string.
+   * \param joy_dev A nonempty path to the joy device we search force feedback for.
+   */
+  std::string get_ff_dev(const std::string& joy_dev)
+  {
+    const char path[] = "/dev/input/by-id";  // no trailing / here
+    struct dirent *entry;
+
+    // the selected joy can be a symlink, but we want the canonical /dev/input/jsX
+    char realpath_buf[PATH_MAX];
+    char *res = realpath(joy_dev.c_str(), realpath_buf);
+    if (res == nullptr)
+    {
+      return "";
+    }
+
+    dir_ptr dev_dir(opendir(path), &closedir_cb);
+    if (dev_dir == nullptr)
+    {
+      ROS_ERROR("Couldn't open %s. Error %i: %s.", path, errno, strerror(errno));
+      return "";
+    }
+
+    const std::string joy_dev_real(realpath_buf);
+    std::string joy_dev_id;
+
+    // first, find the device in /dev/input/by-id that corresponds to the selected joy,
+    // i.e. its realpath is the same as the selected joy's one
+
+    while ((entry = readdir(dev_dir.get())) != nullptr)
+    {
+      res = strstr(entry->d_name, "-joystick");
+      // filter entries
+      if (res == nullptr)  // skip device if it's not a joystick
+      {
+        continue;
+      }
+
+      const auto current_path = std::string(path) + "/" + entry->d_name;
+      res = realpath(current_path.c_str(), realpath_buf);
+      if (res == nullptr)
+      {
+        continue;
+      }
+
+      const std::string dev_real(realpath_buf);
+      if (dev_real == joy_dev_real)
+      {
+        // we found the ID device which maps to the selected joy
+        joy_dev_id = current_path;
+        break;
+      }
+    }
+
+    // if no corresponding ID device was found, the autodetection won't work
+    if (joy_dev_id.empty())
+    {
+      return "";
+    }
+
+    const auto joy_dev_id_prefix = joy_dev_id.substr(0, joy_dev_id.length() - strlen("-joystick"));
+    std::string event_dev;
+
+    // iterate through the by-id dir once more, this time finding the -event-joystick file with the
+    // same prefix as the ID device we've already found
+    dev_dir = dir_ptr(opendir(path), &closedir_cb);
+    while ((entry = readdir(dev_dir.get())) != nullptr)
+    {
+      res = strstr(entry->d_name, "-event-joystick");
+      if (res == nullptr)  // skip device if it's not an event joystick
+      {
+        continue;
+      }
+
+      const auto current_path = std::string(path) + "/" + entry->d_name;
+      if (current_path.find(joy_dev_id_prefix) != std::string::npos)
+      {
+        ROS_INFO("Found force feedback event device %s", current_path.c_str());
+        event_dev = current_path;
+        break;
+      }
+    }
+
+    return event_dev;
   }
 
 public:
@@ -184,11 +281,11 @@ public:
         joy_effect_.type = FF_RUMBLE;
         if (msg->array[i].id == 0)
         {
-          joy_effect_.u.rumble.strong_magnitude = (static_cast<float>(1<<15))*msg->array[i].intensity;
+          joy_effect_.u.rumble.strong_magnitude = (static_cast<float>(0xFFFFU))*msg->array[i].intensity;
         }
         else
         {
-          joy_effect_.u.rumble.weak_magnitude = (static_cast<float>(1<<15))*msg->array[i].intensity;
+          joy_effect_.u.rumble.weak_magnitude = (static_cast<float>(0xFFFFU))*msg->array[i].intensity;
         }
 
         joy_effect_.replay.length = 1000;
@@ -322,9 +419,15 @@ public:
         diagnostic_.update();
       }
 
-      if (!joy_dev_ff_.empty())
+      auto dev_ff = joy_dev_ff_;
+      if (joy_dev_ff_.empty())
       {
-        ff_fd_ = open(joy_dev_ff_.c_str(), O_RDWR);
+        dev_ff = get_ff_dev(joy_dev_);
+      }
+
+      if (!dev_ff.empty())
+      {
+        ff_fd_ = open(dev_ff.c_str(), O_RDWR);
 
         /* Set the gain of the device*/
         int gain = 100;           /* between 0 and 100 */
@@ -339,6 +442,7 @@ public:
           ROS_WARN("Couldn't set gain on joystick force feedback: %s", strerror(errno));
         }
 
+        memset(&joy_effect_, 0, sizeof(joy_effect_));
         joy_effect_.id = -1;
         joy_effect_.direction = 0;  // down
         joy_effect_.type = FF_RUMBLE;
@@ -351,7 +455,13 @@ public:
         int ret = ioctl(ff_fd_, EVIOCSFF, &joy_effect_);
       }
 
-      ROS_INFO("Opened joystick: %s. deadzone_: %f.", joy_dev_.c_str(), deadzone_);
+      char current_joy_name[128];
+      if (ioctl(joy_fd, JSIOCGNAME(sizeof(current_joy_name)), current_joy_name) < 0)
+      {
+        strncpy(current_joy_name, "Unknown", sizeof(current_joy_name));
+      }
+
+      ROS_INFO("Opened joystick: %s (%s). deadzone_: %f.", joy_dev_.c_str(), current_joy_name, deadzone_);
       open_ = true;
       diagnostic_.force_update();
 
@@ -384,7 +494,7 @@ public:
           struct input_event start;
           start.type = EV_FF;
           start.code = joy_effect_.id;
-          start.value = 3;
+          start.value = 1;
           if (write(ff_fd_, (const void*) &start, sizeof(start)) == -1)
           {
             break;  // fd closed
