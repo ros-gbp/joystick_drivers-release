@@ -2,8 +2,12 @@
 Changelog for package joystick_drivers
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.15.0 (2020-10-12)
+-------------------
+
 1.14.0 (2020-07-07)
 -------------------
+* Update master to target Noetic (`#173 <https://github.com/ros-drivers/joystick_drivers/issues/173>`_)
 * roslint and Generic Clean-Up (`#161 <https://github.com/ros-drivers/joystick_drivers/issues/161>`_)
 * Contributors: Joshua Whitley
 
