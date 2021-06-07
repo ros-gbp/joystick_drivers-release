@@ -1,3 +1,29 @@
+## joystick_drivers (noetic) - 1.15.1-1
+
+The packages in the `joystick_drivers` repository were released into the `noetic` distro by running `/usr/bin/bloom-release --ros-distro noetic --track noetic joystick_drivers` on `Mon, 07 Jun 2021 21:01:41 -0000`
+
+These packages were released:
+- `joy`
+- `joystick_drivers`
+- `spacenav_node`
+
+Version of package(s) in repository `joystick_drivers`:
+
+- upstream repository: https://github.com/ros-drivers/joystick_drivers.git
+- release repository: https://github.com/ros-gbp/joystick_drivers-release.git
+- rosdistro version: `1.15.0-1`
+- old version: `1.15.0-1`
+- new version: `1.15.1-1`
+
+Versions of tools used:
+
+- bloom version: `0.10.7`
+- catkin_pkg version: `0.4.23`
+- rosdep version: `0.20.1`
+- rosdistro version: `0.8.3`
+- vcstools version: `0.1.42`
+
+
 ## joystick_drivers (noetic) - 1.15.0-1
 
 The packages in the `joystick_drivers` repository were released into the `noetic` distro by running `/usr/bin/bloom-release --rosdistro noetic --track noetic joystick_drivers --edit` on `Mon, 12 Oct 2020 18:12:46 -0000`
