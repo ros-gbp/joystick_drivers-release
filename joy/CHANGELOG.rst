@@ -2,6 +2,9 @@
 Changelog for package joy
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.15.1 (2021-06-07)
+-------------------
+
 1.15.0 (2020-10-12)
 -------------------
 * Added autodetection for force-feedback devices. (`#169 <https://github.com/ros-drivers/joystick_drivers/issues/169>`_)
